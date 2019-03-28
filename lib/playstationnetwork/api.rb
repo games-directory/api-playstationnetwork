@@ -1,24 +1,17 @@
+require 'pry'
+require 'active_support/core_ext/hash'
+
 module PlayStationNetwork
-  class Configuration
-    attr_writer :key, :secret, :url, :verify_ssl
 
-    def key
-      @key
-    end
+  MISSING_URL     ||= "'url' is missing from your configuration."
+  MISSING_KEY     ||= "'key' is missing from your configuration."
+  MISSING_SECRET  ||= "'secret' is missing from your configuration."
 
-    def secret
-      @secret
-    end
-
-    def url
-      @url
-    end
-
-    def verify_ssl
-      @verify_ssl
-    end
-  end
-
+  # PlayStationNetwork.configure do |config|
+  #   config.key = ''
+  #   ..
+  # end
+  #
   def self.configure(&block)
     block.call(configuration)
   end
@@ -27,61 +20,105 @@ module PlayStationNetwork
     @configuration ||= Configuration.new
   end
 
-  module API
-    include HTTParty
-    extend self
+  def self.valid?
+    return MISSING_URL    if configuration.url.nil?
+    return MISSING_KEY    if configuration.key.nil?
+    return MISSING_SECRET if configuration.secret.nil?
+    true
+  end
 
-    DEFAULT_MESSAGE ||= 'the PlayStationNetwork module before using this gem. See the README.md for how to configure it'
+  class Configuration
+    attr_writer :key, :secret, :url, :verify_ssl
 
-    MISSING_CONFIGURATION ||= 'You must configure ' + DEFAULT_MESSAGE
-    MISSING_URL ||= "You must pass the 'url' to " + DEFAULT_MESSAGE
-    MISSING_KEY ||= "You must pass your 'key' to " + DEFAULT_MESSAGE
-    MISSING_SECRET ||= "You must pass your 'secret' to " + DEFAULT_MESSAGE
-
-    def request
-      handle_response do
-        raise MISSING_CONFIGURATION if PlayStationNetwork.configuration.nil?
-        raise MISSING_KEY if PlayStationNetwork.configuration.key.nil?
-        raise MISSING_SECRET if PlayStationNetwork.configuration.secret.nil?
-        raise MISSING_URL if PlayStationNetwork.configuration.url.nil?
-
-        default_options.update(base_uri: PlayStationNetwork.configuration.url)
-        default_options.update(verify: PlayStationNetwork.configuration.verify_ssl)
-
-        return {
-          api_key: PlayStationNetwork.configuration.key,
-          api_secret: PlayStationNetwork.configuration.secret,
-          response_type: 'json'
-        }
-      end
+    def key
+      @key || '4047cc6b66393a82a0c7d90844cf0d88b14e0c3a'
     end
 
-    def handle_response(&block)
-      yield
-    rescue => e
-      {
-        success: false,
-        code: 500,
-        message: e
+    def secret
+      @secret || 'pacMakaveli90'
+    end
+
+    def url
+      @url || 'https://www.happynation.co.uk/api'
+    end
+
+    def verify_ssl
+      @verify_ssl
+    end
+  end
+  
+  class API
+    require 'net/http'
+
+    attr_accessor :options, :config
+
+    CONFIG_ERROR ||= 'Please read the README.md on how to configure the PlayStationNetwork module.'
+
+    def initialize(*options)
+      raise CONFIG_ERROR unless PlayStationNetwork.valid?
+
+      @config = PlayStationNetwork.configuration
+      @options = {
+        api_key: config.key,
+        api_secret: config.secret,
+        response_type: 'json'
       }
     end
 
-    def parse_response(url, options, reduce_to = {})
-      request = post(url, body: options)
+  public
 
-      if request.success?
-        begin
-          if reduce_to.blank?
-            JSON.parse(request)
-          else
-            JSON.parse(request)[reduce_to]
-          end
-        rescue
-          raise 'There was a problem parsing the JSON. Most likely an API problem.'
+    # def get(url, dig_to = [])
+    #   uri = URI.parse([config.url, url].join)
+
+    #   Net::HTTP.start(uri.host, uri.port, use_ssl: (uri.scheme == 'https')) do |http|
+    #     request = Net::HTTP::Get.new(uri.request_uri)
+    #     # request.set_form_data(options)
+
+    #     response(http.request(request), dig_to)
+    #   end
+    # end
+
+    def post(url, dig_to: [], xml: false)
+      uri = URI.parse([config.url, url].join)
+      # verify_mode: 'OpenSSL::SSL::VERIFY_NONE'
+
+      Net::HTTP.start(uri.host, uri.port, use_ssl: (uri.scheme == 'https')) do |http|
+        request = Net::HTTP::Post.new(uri.request_uri)
+        request.set_form_data(options)
+
+        response(http.request(request), dig_to, xml)
+      end
+    end
+
+  private
+
+    def response(request, dig_to, xml)
+      if request.code == '200'
+        if xml
+          body = parse_xml(request.body)
+        else
+          body = request.body
+        end
+
+        if dig_to.empty?
+          JSON.parse(body, object_class: OpenStruct)
+        else
+          results = JSON.parse(body, object_class: OpenStruct).dig(*dig_to)
+          results.pop if results.last == 'Empty Node'
+          return results
         end
       else
-        raise request.response
+        raise "There was a problem parsing the JSON. Most likely an API problem: #{ request.code }"
       end
+    end
+
+    def parse_xml(response)
+      xml_parsed = response
+        .gsub('<?xml version=\"1.0\"?>', '')
+        .gsub('<\/', '</')
+        .tr('"', '')
+
+      return Hash.from_xml(xml_parsed).to_json
     end
   end
 end

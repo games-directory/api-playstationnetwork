@@ -1,37 +1,29 @@
 module PlayStationNetwork
-  class User
-    attr_accessor :options
-
-    INVALID_IDENTITY_TYPE ||="'identity' parameter needs to be a String"
+  class User < PlayStationNetwork::API
+    INVALID_IDENTITY_TYPE ||= "'identity' parameter needs to be a String"
     INVALID_NPCOMMID_TYPE ||= "'npcommid' parameter needs to be a String"
 
     def initialize(identity)
-      PlayStationNetwork::API.handle_response do
-        raise ArgumentError, INVALID_IDENTITY_TYPE unless identity.is_a?(String)
-        
-        @options = PlayStationNetwork::API.request.merge(user_id: identity)
-      end
+      raise INVALID_IDENTITY_TYPE unless identity.is_a?(String)
+
+      super
+
+      options[:user_id] = identity
     end
 
     def profile
-      PlayStationNetwork::API.handle_response do
-        PlayStationNetwork::API.parse_response('/psnGetUser', options)
-      end
+      post('/psnGetUser')
     end
 
-    def games
-      PlayStationNetwork::API.handle_response do
-        PlayStationNetwork::API.parse_response('/psnGetUserGames', options, 'games')
-      end
+    def games(dig_to: ['games'])
+      post('/psnGetUserGames', dig_to)
     end
-    
-    def trophies(npcommid)
-      PlayStationNetwork::API.handle_response do
-        raise INVALID_NPCOMMID_TYPE unless npcommid.is_a?(String)
 
-        @options = options.merge(npcommid: npcommid)
-        PlayStationNetwork::API.parse_response('/psnGetUserTrophies', options)
-      end
+    def trophies(npcommid, dig_to: ['trophies'])
+      raise INVALID_IDENTITY_TYPE unless npcommid.is_a?(String)
+
+      options[:npcommid] = npcommid
+      post('/psnGetUserTrophies', dig_to)
     end
   end
 end

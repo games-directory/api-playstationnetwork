@@ -1,7 +1,6 @@
 module PlayStationNetwork
   class Store
-    include HTTParty
-    base_uri "https://store.playstation.com"
+    # base_uri "https://store.playstation.com"
 
     attr_reader :args, :region, :language
 

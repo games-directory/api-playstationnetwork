@@ -53,6 +53,15 @@ module PlayStationNetwork
 
       v2.2
         - Added experimental PlayStation Store endpoint
+
+      v3.0
+        - (major) The API now returns OpenStruct objects instead of plain JSON
+        - (major) 
+        - Removed HTTParty dependency and used Ruby's Net::HTTP
+        - Removed a lot of logic and simplified the code and classes
+        - Integrated experimental PlayStation Stores endpoints into the gem
+        - Added Cache
+
     "
   end
 end
