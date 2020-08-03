@@ -7,7 +7,6 @@ module PlayStationNetwork
       raise INVALID_IDENTITY_TYPE unless identity.is_a?(String)
 
       super
-
       options[:user_id] = identity
     end
 
@@ -16,14 +15,14 @@ module PlayStationNetwork
     end
 
     def games(dig_to: ['games'])
-      post('/psnGetUserGames', dig_to)
+      post('/psnGetUserGames', dig_to: dig_to)
     end
 
     def trophies(npcommid, dig_to: ['trophies'])
       raise INVALID_IDENTITY_TYPE unless npcommid.is_a?(String)
 
       options[:npcommid] = npcommid
-      post('/psnGetUserTrophies', dig_to)
+      post('/psnGetUserTrophies', dig_to: dig_to)
     end
   end
 end

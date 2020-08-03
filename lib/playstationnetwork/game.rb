@@ -10,7 +10,6 @@ module PlayStationNetwork
       raise INVALID_NPCOMMID_TYPE unless npcommid.is_a?(String)
 
       super
-
       unless npcommid.empty?
         options[:npcommid] = npcommid
       end

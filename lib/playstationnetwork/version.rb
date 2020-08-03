@@ -1,5 +1,5 @@
 module PlayStationNetwork
-  VERSION ||= '2.2'
+  VERSION ||= '3.1'
 
   def self.changelog
     puts "
@@ -56,12 +56,13 @@ module PlayStationNetwork
 
       v3.0
         - (major) The API now returns OpenStruct objects instead of plain JSON
-        - (major) 
         - Removed HTTParty dependency and used Ruby's Net::HTTP
         - Removed a lot of logic and simplified the code and classes
         - Integrated experimental PlayStation Stores endpoints into the gem
         - Added Cache
 
+      v3.0.1
+        - Fixed an issue caused by the User not having any earned trophies and trying to get last item from an empty array
     "
   end
 end

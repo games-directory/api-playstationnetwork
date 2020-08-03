@@ -1,82 +1,113 @@
 module PlayStationNetwork
   class Store
-    # base_uri "https://store.playstation.com"
+    require 'net/http'
 
-    attr_reader :args, :region, :language
+    attr_reader :args, :region, :language, :headers
 
     def initialize(args, region: 'GB', language: 'en')
       @args = args
       @region = region
       @language = language
+
+      @headers = {
+        "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+        "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Authority" => "store.playstation.com"
+      }
     end
 
-    def search(game_type = 'Full Game')
-      raise '' unless game_type != 'Full Game' || game_type != 'Bundle'
+    def search(game_type = 'PSN Game')
+      raise '' unless game_type != 'PSN Game' || game_type != 'Bundle'
+      games = []
 
       options = {
-        headers: {
-          "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
-          "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-          "Authority" => "store.playstation.com"
-        },
-        
         query: {
           suggested_size: 5,
           mode: 'game'
         }
       }
 
-      request = self.class.get(search_url(args), options)
+      uri = URI.parse(search_url(args))
+      uri.query = URI.encode_www_form(options[:query])
 
-      if request.success?
-        response = []
+      Net::HTTP.start(uri.host, uri.port, use_ssl: (uri.scheme == 'https')) do |http|
+        request = Net::HTTP::Get.new(uri.request_uri)
 
-        results = request.parsed_response['included'].select do |result|
-          result['attributes']['game-content-type'] == game_type
+        headers.each do |key, value|
+          request[key] = value
         end
 
-        results.each do |result|
-          response << {
-            store_id: result['id'],
-            name: result['attributes']['name'],
-            description: result['attributes']['long-description'],
-            type: result['type'],
-            raw: result
-          }
-        end
+        response = http.request(request)
+        
+        if response.code == '200'
+          results = JSON.parse(response.body)['included'].select do |result|
+            result['attributes']['game-content-type'] == game_type
+          end
 
-        return response
-      else
-        raise request.response
+          results.map { |r| r.deep_transform_keys(&:underscore) }.each do |result|
+            games << {
+              store_id:     result['id'],
+              name:         result['attributes']['name'],
+              description:  result['attributes']['long_description'],
+              type:         result['type'],
+              raw:          result
+            }
+          end
+
+          return JSON.parse(games.to_json, object_class: OpenStruct)
+        else
+          raise response.code
+        end
       end
     end
 
     def details
-      options = {
-        headers: {
-          "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
-          "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-          "Authority" => "store.playstation.com"
-        }
-      }
+      uri = URI.parse(details_url(args))
 
-      request = self.class.get(details_url(args), options)
+      Net::HTTP.start(uri.host, uri.port, use_ssl: (uri.scheme == 'https')) do |http|
+        request = Net::HTTP::Get.new(uri.request_uri)
 
-      if request.success?
-        return request.parsed_response
-      else
-        raise request.response
+        headers.each do |key, value|
+          request[key] = value
+        end
+
+        response = http.request(request)
+        
+        if response.code == '200'
+          return JSON.parse(
+            JSON.parse(response.body)
+              .deep_transform_keys(&:underscore)
+              .to_json,
+
+            object_class: OpenStruct
+          )
+        else
+          raise response.code
+        end
       end
     end
 
   private
 
     def search_url(query)
-      "/valkyrie-api/#{ language }/#{ region }/19/tumbler-search/#{ URI.encode(query) }"
+      "https://store.playstation.com/valkyrie-api/#{ language }/#{ region }/19/tumbler-search/#{ URI.encode(query) }"
     end
 
     def details_url(identifier)
-      "/store/api/chihiro/00_09_000/container/#{ region }/#{ language }/19/#{ identifier }"
+      "https://store.playstation.com/store/api/chihiro/00_09_000/container/#{ region }/#{ language }/19/#{ identifier }"
+    end
+
+    def deep_transform_keys(object, &block)
+      case object
+      when Hash
+        object.each_with_object({}) do |(key, value), result|
+          result[yield(key)] = deep_transform_keys(value, &block)
+        end
+      when Array
+        object.map { |e| deep_transform_keys(e, &block) }
+      else
+        object
+      end
     end
   end
 end

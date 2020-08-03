@@ -39,7 +39,7 @@ module PlayStationNetwork
     end
 
     def url
-      @url || 'https://www.happynation.co.uk/api'
+      @url || 'https://happynation.co.uk/api'
     end
 
     def verify_ssl
@@ -52,7 +52,7 @@ module PlayStationNetwork
 
     attr_accessor :options, :config
 
-    CONFIG_ERROR ||= 'Please read the README.md on how to configure the PlayStationNetwork module.'
+    CONFIG_ERROR ||= 'Please read the README.md on how to configure the PlayStationNetwork::API module.'
 
     def initialize(*options)
       raise CONFIG_ERROR unless PlayStationNetwork.valid?
@@ -80,9 +80,8 @@ module PlayStationNetwork
 
     def post(url, dig_to: [], xml: false)
       uri = URI.parse([config.url, url].join)
-      # verify_mode: 'OpenSSL::SSL::VERIFY_NONE'
 
-      Net::HTTP.start(uri.host, uri.port, use_ssl: (uri.scheme == 'https')) do |http|
+      Net::HTTP.start(uri.host, uri.port, use_ssl: (uri.scheme == 'https'), verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data(options)
 
@@ -104,7 +103,7 @@ module PlayStationNetwork
           JSON.parse(body, object_class: OpenStruct)
         else
           results = JSON.parse(body, object_class: OpenStruct).dig(*dig_to)
-          results.pop if results.last == 'Empty Node'
+          results.pop if results&.last == 'Empty Node'
           return results
         end
       else
