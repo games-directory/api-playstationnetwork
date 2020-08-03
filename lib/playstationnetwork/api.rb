@@ -31,11 +31,11 @@ module PlayStationNetwork
     attr_writer :key, :secret, :url, :verify_ssl
 
     def key
-      @key || '4047cc6b66393a82a0c7d90844cf0d88b14e0c3a'
+      @key || ''
     end
 
     def secret
-      @secret || 'pacMakaveli90'
+      @secret || ''
     end
 
     def url

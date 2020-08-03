@@ -7,8 +7,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Vlad Radulescu']
   spec.email         = ['oss@games.directory']
 
-  spec.summary       = %q{ A Ruby wrapper around PSN Leaderboard's API }
-  spec.description   = %q{ Allows your app to communicate with the PlayStation Network API and retrieve your, or a given user, Games, Trophies and Achievements. API is provided by psnloaderboard.com . }
+  spec.summary       = %q{ [DEPRECATED] A Ruby wrapper around PSN Leaderboard's API }
+  spec.description   = %q{ [DEPRECATED] Allows your app to communicate with the PlayStation Network API and retrieve your, or a given user, Games, Trophies and Achievements. API is provided by psnloaderboard.com . }
   spec.homepage      = ''
   spec.license       = 'MIT'
 

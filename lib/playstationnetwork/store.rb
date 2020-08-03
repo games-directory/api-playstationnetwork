@@ -38,7 +38,7 @@ module PlayStationNetwork
         end
 
         response = http.request(request)
-        
+
         if response.code == '200'
           results = JSON.parse(response.body)['included'].select do |result|
             result['attributes']['game-content-type'] == game_type
@@ -72,7 +72,7 @@ module PlayStationNetwork
         end
 
         response = http.request(request)
-        
+
         if response.code == '200'
           return JSON.parse(
             JSON.parse(response.body)

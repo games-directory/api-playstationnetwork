@@ -1,7 +1,3 @@
 # Ignore Gemfile.lock
 # 
 *.lock
-
-# Ignore generated .gem files
-# 
-*.gem

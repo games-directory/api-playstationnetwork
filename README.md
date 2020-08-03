@@ -1,18 +1,21 @@
+**[DEPRECATED]** The API is currently out of date as it's not been updated in over a year, from the time of writing this.
+The API still works and it can still be used to retrieve historical data, assuming your user was there when API was active.
+Use this to populate your PlayStation database if you must :)
+
+If you need an active, maintained API, either contact psn@games.directory or check out https://github.com/games-directory/api-psn
+
+The Store API is still working but not maintained. For a better, maintained version, use https://github.com/games-directory/api-psn
+
 # PlayStationNetwork::API
 
 Retrieve User, Trophies and Game data from PlayStationNetwork.
-
-[DEPRECATED] The API is no longer available as it's not been updated in over a
-year, from the time of writing this.
-
-If you still need an API, either contact psn@games.directory or check out https://github.com/games-directory/api-psn
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'playstationnetwork-api', '~> 2.1'
+gem 'playstationnetwork-api', '~> 3.1'
 ```
 
 And then execute:
