@@ -2,6 +2,11 @@
 
 Retrieve User, Trophies and Game data from PlayStationNetwork.
 
+[DEPRECATED] The API is no longer available as it's not been updated in over a
+year, from the time of writing this.
+
+If you still need an API, either contact psn@games.directory or check out https://github.com/games-directory/api-psn
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -109,7 +114,7 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/games-
 
 The MIT License (MIT)
 
-Copyright (c) 2018 Vlad Radulescu, Studio51 Solutions, Studio51 Gaming Solutions
+Copyright (c) 2020 Vlad Radulescu, Studio51 Solutions, Studio51 Gaming Solutions
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
