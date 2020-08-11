@@ -1,5 +1,5 @@
-require 'pry'
 require 'active_support/core_ext/hash'
+require 'json'
 
 module PlayStationNetwork
 
@@ -46,7 +46,7 @@ module PlayStationNetwork
       @verify_ssl
     end
   end
-  
+
   class API
     require 'net/http'
 
